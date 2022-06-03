@@ -1,0 +1,164 @@
+@import 'project';
+
+html {
+  --clr-body:                 #{$clr-body};
+  --clr-text:                 #{$clr-text};
+  --clr-body-rgb:             #{_hexToRGB($clr-body)};
+  --clr-text-rgb:             #{_hexToRGB($clr-text)};
+  --sl_modal-overlay-opacity: #{$sl_modal-overlay-opacity};
+  --clr-ui-modal-overlay:     rgba(var(--clr-text-rgb), $sl_modal-overlay-opacity);
+  --clr-hr:                   #{$clr-hr};
+  --clr-success:              #{$clr-success};
+  --clr-success-invert:       #{$clr-success-invert};
+  --clr-error:                #{$clr-error};
+  --clr-error-invert:         #{$clr-error-invert};
+  --clr-white:                #{$clr-white};
+  --clr-black:                #{$clr-black};
+
+  // gray colors
+  --clr-gray-charleston:      #{$clr-gray-charleston};
+  --clr-gray-gunmetal:        #{$clr-gray-gunmetal};
+  --clr-gray-davys:           #{$clr-gray-davys};
+  --clr-gray-slate:           #{$clr-gray-slate};
+  --clr-gray-light:           #{$clr-gray-light};
+  --clr-gray-ghost:           #{$clr-gray-ghost};
+  --clr-gray-gainsboro:       #{$clr-gray-gainsboro};
+  --clr-gray-cultured:        #{$clr-gray-cultured};
+  --clr-gray-alice-blue:      #{$clr-gray-alice-blue};
+  --clr-gray-lighten:         #{$clr-gray-lighten};
+
+  --clr-gray-1:               #{$clr-gray-1};
+  --clr-gray-2:               #{$clr-gray-2};
+  --clr-gray-3:               #{$clr-gray-3};
+  --clr-gray-4:               #{$clr-gray-4};
+  --clr-gray-5:               #{$clr-gray-5};
+  --clr-gray-6:               #{$clr-gray-6};
+  --clr-gray-7:               #{$clr-gray-7};
+  --clr-gray-8:               #{$clr-gray-8};
+  --clr-gray-9:               #{$clr-gray-9};
+  --clr-gray-10:              #{$clr-gray-10};
+  --clr-gray-11:              #{$clr-gray-11};
+  --clr-gray-12:              #{$clr-gray-12};
+  --clr-gray-13:              #{$clr-gray-13};
+  --clr-gray-1-rgb:           #{_hexToRGB($clr-gray-1)};
+  --clr-gray-2-rgb:           #{_hexToRGB($clr-gray-2)};
+  --clr-gray-3-rgb:           #{_hexToRGB($clr-gray-3)};
+  --clr-gray-4-rgb:           #{_hexToRGB($clr-gray-4)};
+  --clr-gray-5-rgb:           #{_hexToRGB($clr-gray-5)};
+  --clr-gray-6-rgb:           #{_hexToRGB($clr-gray-6)};
+  --clr-gray-7-rgb:           #{_hexToRGB($clr-gray-7)};
+  --clr-gray-8-rgb:           #{_hexToRGB($clr-gray-8)};
+  --clr-gray-9-rgb:           #{_hexToRGB($clr-gray-9)};
+  --clr-gray-10-rgb:          #{_hexToRGB($clr-gray-10)};
+  --clr-gray-11-rgb:          #{_hexToRGB($clr-gray-11)};
+  --clr-gray-12-rgb:          #{_hexToRGB($clr-gray-12)};
+  --clr-gray-13-rgb:          #{_hexToRGB($clr-gray-13)};
+
+  // white colors
+  --clr-white-1:              #{$clr-white-1};
+  --clr-white-2:              #{$clr-white-2};
+  --clr-white-3:              #{$clr-white-3};
+  --clr-white-4:              #{$clr-white-4};
+  --clr-white-5:              #{$clr-white-5};
+  --clr-white-6:              #{$clr-white-6};
+  --clr-white-7:              #{$clr-white-7};
+  --clr-white-8:              #{$clr-white-8};
+  --clr-white-9:              #{$clr-white-9};
+  --clr-white-10:             #{$clr-white-10};
+
+  // black colors
+  --clr-black-1:              #{$clr-black-1};
+  --clr-black-2:              #{$clr-black-2};
+  --clr-black-3:              #{$clr-black-3};
+  --clr-black-4:              #{$clr-black-4};
+  --clr-black-5:              #{$clr-black-5};
+  --clr-black-6:              #{$clr-black-6};
+  --clr-black-7:              #{$clr-black-7};
+  --clr-black-8:              #{$clr-black-8};
+  --clr-black-9:              #{$clr-black-9};
+  --clr-black-10:             #{$clr-black-10};
+
+  // blue colors
+  --clr-blue-1:               #{$clr-blue-1};
+  --clr-blue-2:               #{$clr-blue-2};
+  --clr-blue-3:               #{$clr-blue-3};
+  --clr-blue-4:               #{$clr-blue-4};
+  --clr-blue-5:               #{$clr-blue-5};
+  --clr-blue-6:               #{$clr-blue-6};
+  --clr-blue-7:               #{$clr-blue-7};
+  --clr-blue-8:               #{$clr-blue-8};
+  --clr-blue-9:               #{$clr-blue-9};
+  --clr-blue-10:              #{$clr-blue-10};
+
+  // red colors
+  --clr-red-1:                #{$clr-red-1};
+  --clr-red-2:                #{$clr-red-2};
+  --clr-red-3:                #{$clr-red-3};
+  --clr-red-4:                #{$clr-red-4};
+  --clr-red-5:                #{$clr-red-5};
+  --clr-red-6:                #{$clr-red-6};
+  --clr-red-7:                #{$clr-red-7};
+  --clr-red-8:                #{$clr-red-8};
+  --clr-red-9:                #{$clr-red-9};
+  --clr-red-10:               #{$clr-red-10};
+
+  // fire colors
+  --clr-fire-1:               #{$clr-fire-1};
+  --clr-fire-2:               #{$clr-fire-2};
+  --clr-fire-3:               #{$clr-fire-3};
+  --clr-fire-4:               #{$clr-fire-4};
+  --clr-fire-5:               #{$clr-fire-5};
+  --clr-fire-6:               #{$clr-fire-6};
+  --clr-fire-7:               #{$clr-fire-7};
+  --clr-fire-8:               #{$clr-fire-8};
+  --clr-fire-9:               #{$clr-fire-9};
+  --clr-fire-10:              #{$clr-fire-10};
+
+  // ice colors
+  --clr-ice-1:                #{$clr-ice-1};
+  --clr-ice-2:                #{$clr-ice-2};
+  --clr-ice-3:                #{$clr-ice-3};
+  --clr-ice-4:                #{$clr-ice-4};
+  --clr-ice-5:                #{$clr-ice-5};
+  --clr-ice-6:                #{$clr-ice-6};
+  --clr-ice-7:                #{$clr-ice-7};
+  --clr-ice-8:                #{$clr-ice-8};
+  --clr-ice-9:                #{$clr-ice-9};
+  --clr-ice-10:               #{$clr-ice-10};
+
+
+  &#{themeClass(dark)},
+  &#{themeAttr(dark)} {
+    --clr-body:               #{$clr-body-dark};
+    --clr-text:               #{$clr-text-dark};
+    --clr-body-rgb:           #{_hexToRGB($clr-body-dark)};
+    --clr-text-rgb:           #{_hexToRGB($clr-text-dark)};
+
+    --clr-gray-1:             #{$clr-gray-13};
+    --clr-gray-2:             #{$clr-gray-12};
+    --clr-gray-3:             #{$clr-gray-11};
+    --clr-gray-4:             #{$clr-gray-10};
+    --clr-gray-5:             #{$clr-gray-9};
+    --clr-gray-6:             #{$clr-gray-8};
+    --clr-gray-7:             #{$clr-gray-7};
+    --clr-gray-8:             #{$clr-gray-6};
+    --clr-gray-9:             #{$clr-gray-5};
+    --clr-gray-10:            #{$clr-gray-4};
+    --clr-gray-11:            #{$clr-gray-3};
+    --clr-gray-12:            #{$clr-gray-2};
+    --clr-gray-13:            #{$clr-gray-1};
+    --clr-gray-1-rgb:         #{_hexToRGB($clr-gray-13)};
+    --clr-gray-2-rgb:         #{_hexToRGB($clr-gray-12)};
+    --clr-gray-3-rgb:         #{_hexToRGB($clr-gray-11)};
+    --clr-gray-4-rgb:         #{_hexToRGB($clr-gray-10)};
+    --clr-gray-5-rgb:         #{_hexToRGB($clr-gray-9)};
+    --clr-gray-6-rgb:         #{_hexToRGB($clr-gray-8)};
+    --clr-gray-7-rgb:         #{_hexToRGB($clr-gray-7)};
+    --clr-gray-8-rgb:         #{_hexToRGB($clr-gray-6)};
+    --clr-gray-9-rgb:         #{_hexToRGB($clr-gray-5)};
+    --clr-gray-10-rgb:        #{_hexToRGB($clr-gray-4)};
+    --clr-gray-11-rgb:        #{_hexToRGB($clr-gray-3)};
+    --clr-gray-12-rgb:        #{_hexToRGB($clr-gray-2)};
+    --clr-gray-13-rgb:        #{_hexToRGB($clr-gray-1)};
+  }
+}

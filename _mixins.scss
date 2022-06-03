@@ -1,0 +1,610 @@
+// . _size
+// * Example:
+//   @ $size: 120px 50px
+//   @ $position: middle center
+//   . @include _size($size, $position);
+//   - return {
+//     - width: 120px;
+//     - height: 50px;
+//     - top: 50%;
+//     - margin-top: -25px;
+//     - left: 50%;
+//     - margin-left: -60px;
+//     - position: absolute;
+//   - }
+
+// * Example:
+//   @ $size: 120px 50px
+//   @ $position: middle t center t
+//   . @include _size($size, $position);
+//   - return {
+//     - width: 120px;
+//     - height: 50px;
+//     - top: 50%;
+//     - left: 50%;
+//     - position: absolute;
+//     - transform: translate(-50%, -50%);
+//   - }
+
+@mixin _size ($size: null, $position: null, $onlyPositionOrImportant: false) {
+  @if (type-of($size) == list) {
+    $size: _list_flat($size, space);
+  }
+
+  $width_value:              null;
+  $height_value:             null;
+  $line_height_value:        null;
+  $position_prop:            null;
+  $position_values:          null;
+  $transform_translate: (
+    use:                     false,
+    x:                       0,
+    y:                       0,
+  );
+  $margin: (
+    use:                     false,
+    middleUsed:              false,
+    centerUsed:              false,
+    top:                     null,
+    right:                   null,
+    bottom:                  null,
+    left:                    null,
+  );
+
+  @if (type-of($size) == list) {
+    @if (length($size) == 1) {
+      $width_value: $size;
+      $height_value: $size;
+    } @else if (length($size) == 2) {
+      $width_value: nth($size, 1);
+      @if (nth($size, 2) == true) {
+        $height_value: $width_value;
+        $line_height_value: $height_value;
+      } @else if (checkPosition(nth($size, 2))) {
+        $position_prop: nth($size, 2);
+        $height_value: $width_value;
+      } @else {
+        $height_value: nth($size, 2);
+      }
+    } @else if (length($size) > 2) {
+      $width_value: nth($size, 1);
+
+      @if (length($size) == 3) {
+        $second: nth($size, 2);
+        $third: nth($size, 3);
+
+        @if ($second == true) {
+          $height_value: $width_value;
+          $line_height_value: $height_value;
+        } @else if (type-of($second) == number) {
+          $height_value: $second;
+        }
+
+        @if ($third == true) {
+          $height_value: $second;
+          $line_height_value: $height_value;
+        } @else if (type-of($third) == number) {
+          $line_height_value: $third;
+        } @else if (checkPosition($third)) {
+          $position_prop: $third;
+        }
+      } @else if (length($size) == 4) {
+        $width_value: nth($size, 1);
+        $height_value: nth($size, 2);
+        $line_height_value: nth($size, 3);
+        $position_prop: nth($size, 4);
+      }
+    }
+  } @else {
+    $width_value: $size;
+    $height_value: $size;
+  }
+
+  @if (not $onlyPositionOrImportant or $onlyPositionOrImportant == !important) {
+    $important: if($onlyPositionOrImportant == !important, !important, null);
+    @if ($width_value) { width: $width_value $important; }
+    @if ($height_value) { height: $height_value $important; }
+    @if ($line_height_value) { line-height: $height_value $important; }
+  }
+
+
+  @if ($position != null) {
+    @if ($position_prop == null and checkPosition($position)) {
+      $position_prop: $position;
+    } @else if (type-of($position) == list) {
+      $counter: 1;
+      $max: length($position);
+
+      @each $prop in $position {
+        $skip: false;
+        $nextProp: null;
+
+        @if ($counter < $max) {
+          $nextProp: nth($position, $counter + 1);
+        }
+
+        @if (not $skip) {
+          @if (checkPosition($prop)) {
+            $position_prop: $prop;
+          } @else if (checkPositionPropMargin($prop)) {
+            @if ($nextProp == null or checkPositionPropMargin($nextProp) or checkPositionProp($nextProp)) {
+              $nextProp: 0;
+            }
+
+            $margin: map-merge($margin, (use: true, _str_replace($prop, 'm', ''): $nextProp));
+          } @else if (checkPositionProp($prop)) {
+            $skip: true;
+
+            @if ($nextProp == null or checkPositionProp($nextProp)) {
+              $nextProp: 0;
+            }
+
+            @if (checkPositionPropCentered($nextProp)) {
+              #{$prop}: 0;
+            } @else {
+              #{$prop}: $nextProp;
+            }
+          } @else if (checkPositionPropCentered($prop)) {
+            $attr: top y $height_value;
+
+            @if ($prop == center) {
+              $attr: left x $width_value;
+            }
+
+            @if ($nextProp == t) {
+              #{nth($attr, 1)}: 50%;
+              $transform_translate: map-merge($transform_translate, (use: true, nth($attr, 2): -50%));
+              $skip: true;
+            } @else {
+              $property: nth($attr, 1);
+              $size: nth($attr, 3);
+              $marginValue: map-get($margin, $property);
+
+              @if (not $size) {
+                $size: 0;
+              }
+
+              @if (_num_unit($size) == px) {
+                #{$property}: 50%;
+                #{'margin-' + $property}: -$size / 2 + if($marginValue != null, $marginValue, 0);
+                $margin: map-merge($margin, (if($property == top, middleUsed, centerUsed): true));
+              }
+                @else if (_num_unit($size) == '%') {
+                  #{$property}: (100 - $size) / 2;
+                  $margin: map-merge($margin, (if($property == top, middleUsed, centerUsed): false));
+                }
+            }
+          }
+        } @else {
+          $skip: false;
+        }
+
+        @if ($counter >= $max and not $position_prop) {
+          $position_prop: absolute;
+        }
+
+        $counter: $counter + 1;
+      }
+    }
+  }
+
+  @if ($position_prop) {
+    position: $position_prop;
+  }
+
+  @if (map-get($transform_translate, use) == true) {
+    transform: translate(map-get($transform_translate, x), map-get($transform_translate, y));
+  }
+
+  @if (map-get($margin, use) == true) {
+    @each $key, $value in $margin {
+      @if (checkPositionProp($key)) {
+        @if ($key == top or $key == left) {
+          @if (
+            ($key == top and not map-get($margin, middleUsed))
+            or ($key == left and not map-get($margin, centerUsed))
+          ) {
+            #{'margin-' + $key}: $key;
+          }
+        } @else {
+          #{'margin-' + $key}: $value;
+        }
+      }
+    }
+  }
+
+  @content;
+}
+
+// !!! based on _size mixin
+// . _pos
+// * Example:
+//   @ $position: middle center
+//   @ $size: 120px 50px
+//   . @include _pos($position, $size);
+//   - return {
+//     - top: 50%;
+//     - margin-top: -25px;
+//     - left: 50%;
+//     - margin-left: -60px;
+//     - position: absolute;
+//   - }
+
+@mixin _pos ($position: null, $size: null) {
+  @if ($position == null and $size == null) {
+    position: relative;
+    @content;
+  } @else {
+    @include _size($size, $position, true) {
+      @content;
+    }
+  }
+}
+
+
+
+// . severalBySuffix
+// * Example:
+//   @ $property: margin
+//   @ $property-suffix: top bottom
+//   @ $value: 10px
+//   . @include severalBySuffix($property, $property-suffix, $value);
+//   - result:
+//     - margin-top: 10px
+//     - margin-bottom: 10px
+
+@mixin severalBySuffix ($property: null, $property-suffix: x, $value: 0) {
+  @if ($property != null) {
+    @each $suffix in $property-suffix {
+      #{ $property + '-' + $suffix }: $value;
+    }
+  }
+  @content;
+}
+@mixin multipleBySuffix ($property, $property-suffix, $value) {
+  @include severalBySuffix($property, $property-suffix, $value) {
+    @content;
+  }
+}
+@mixin svlSuff ($property, $property-suffix, $value) {
+  @include severalBySuffix($property, $property-suffix, $value) {
+    @content;
+  }
+}
+
+
+
+// . severalProps
+// * Example:
+//   @ $property: font-size color line-height
+//   @ $value: inherit
+//   . @include severalProps($property, $value);
+//   - result:
+//     - font-size: inherit
+//     - color: inherit
+//     - line-height: inherit
+
+@mixin severalProps ($list-property: null, $value: 0) {
+  @if ($list-property != null) {
+    @each $property in $list-property {
+      #{ $property }: $value;
+    }
+  }
+  @content;
+}
+@mixin multipleProps ($list-property, $value) {
+  @include severalProps($list-property, $value) {
+    @content;
+  }
+}
+@mixin svlProps ($list-property, $value) {
+  @include severalProps($list-property, $value) {
+    @content;
+  }
+}
+
+
+
+// . style-by-map
+// * Example:
+//   @ $map: ( color: red, font-size: 20px )
+//   . @include style-by-map($map);
+//   - return css => { color: red; font-size: 20px; }
+
+@mixin style-by-map ($map: ()) {
+  @if (type-of($map) == map) {
+    @each $prop, $value in $map {
+      #{$prop}: $value;
+    }
+
+    @content;
+  }
+}
+
+
+
+// . class-by-map
+// * Example:
+//   @ $map_colors: ( primary: #c8ff00, secondary: #232323, third: #dede85 )
+//   @ $property background-color
+//   @ $prefix: 'bg_'
+//   @ $suffix: null
+//   . @include class-by-map($map_colors, $property, $prefix, $suffix);
+//   - return
+//     - .bg_primary { background-color: #c8ff00; }
+//     - .bg_secondary { background-color: #232323; }
+//     - .bg_third { background-color: #dede85; }
+
+@mixin class-by-map ($map: (), $property: null, $prefix: '', $suffix: '') {
+  @if (type-of($map) == map and $property) {
+    @at-root {
+      @each $class, $value in $map {
+        .#{$prefix + $class + $suffix} {
+          #{$property}: $value;
+
+          @content;
+        }
+      }
+    }
+  }
+}
+
+
+
+// . _anim_keys
+// * Example:
+//   @ $animationName: spinner
+//   @ $properties: 1s linear infinite
+//   . @include _anim_keys($animationName, $properties) {
+//   .   from { transform: rotate(0deg); }
+//   .   to { transform: rotate(360deg); }
+//   . }
+//   - return {
+//     - animation: spinner 1s linear infinite
+//     - create kyeframes in root
+//     - @keyframes {
+//       - from { transform: rotate(0deg); }
+//       - to { transform: rotate(360deg); }
+//     - }
+//   - }
+
+@mixin _anim_keys ($animationName, $properties...) {
+  animation: $animationName $properties;
+
+  @at-root {
+    @keyframes #{$animationName} {
+      @content;
+    }
+  }
+}
+
+
+
+// . _flex
+  @mixin _flex ($direction: row, $align-items: null, $justify-content: null, $wrap: wrap, $is-display-inline: false) {
+    display: if($is-display-inline != inline, flex, inline-flex);
+    flex-direction: #{$direction};
+
+    @if ($align-items != null) {
+      align-items: $align-items;
+    }
+    @if ($justify-content != null) {
+      justify-content: $justify-content;
+    }
+    @if ($wrap != null) {
+      flex-wrap: $wrap;
+    }
+  }
+
+
+
+// . _flex_center
+
+@mixin _flex_center ($wrap: wrap) {
+  @include _flex(row, center, center, $wrap);
+}
+
+
+
+// . _flex_col_center
+
+@mixin _flex_col_center ($wrap: wrap) {
+  @include _flex(column, center, center, $wrap);
+}
+
+
+
+// . _bg
+// * Example:
+//   @ $props: #f0f no-repeat contain pos center scroll
+//   . @include _bg($props);
+//   - return {
+//     - background-color: #f0f;
+//     - background-repeat: no-repeat;
+//     - background-size: contain;
+//     - background-position: center;
+//     - background-attachment: scroll;
+//   - }
+
+@mixin _bg ($props: ()) {
+  @if (type-of($props) == list) {
+    $props: _list_flat($props, space);
+
+    $skip: 0;
+    $skip_counter: 1;
+    $counter: 1;
+    $max: length($props);
+  
+    @each $prop in $props {
+  
+      @if ($skip < $skip_counter) {
+        $skip: 0;
+        $skip_counter: 1;
+  
+        @if (type-of($prop) == color) {
+          background-color: $prop;
+        } @else if ($prop == url) {
+          $firstNextValue: null;
+  
+          @if ($counter + 1 <= $max) {
+            $firstNextValue: nth($props, $counter + 1);
+          }
+  
+          @if ($firstNextValue) {
+            background-image: url($firstNextValue);
+  
+            $skip: 1;
+          }
+        } @else if ($prop == fixed or $prop == scroll) {
+          background-attachment: $prop;
+        } @else if ($prop == pos or $prop == position) {
+          $firstNextValue: null;
+          $secondNextValue: null;
+  
+          @if ($counter + 1 <= $max) {
+            $firstNextValue: nth($props, $counter + 1);
+  
+            @if ($counter + 2 <= $max) {
+              $secondNextValue: nth($props, $counter + 2);
+            }
+          }
+  
+          @if (checkBackgroundPosition($firstNextValue)) {
+            @if (checkBackgroundPosition($secondNextValue)) {
+              background-position: $firstNextValue $secondNextValue;
+  
+              $skip: 2;
+            } @else {
+              background-position: $firstNextValue;
+  
+              $skip: 1;
+            }
+          }
+        } @else if ($prop == auto or $prop == contain or $prop == cover) {
+          background-size: $prop;
+        } @else if ($prop == size) {
+          $firstNextValue: null;
+          $secondNextValue: null;
+  
+          @if ($counter + 1 <= $max) {
+            $firstNextValue: nth($props, $counter + 1);
+  
+            @if (($firstNextValue != cover and $firstNextValue != contain) and ($counter + 2 <= $max)) {
+              $secondNextValue: nth($props, $counter + 2);
+            }
+          }
+  
+          @if (checkBackgroundSize($firstNextValue)) {
+            @if (checkBackgroundSize($secondNextValue)) {
+              background-size: $firstNextValue $secondNextValue;
+              $skip: 2;
+              
+            } @else {
+              $skip: 1;
+              background-size: $firstNextValue;
+            }
+          }
+  
+        } @else if (type-of($prop) == string and str-index($prop, 'repeat')) {
+          background-repeat: $prop;
+        }
+      } @else {
+        $skip_counter: $skip_counter + 1;
+      }
+  
+      $counter: $counter + 1;
+    }
+  }
+}
+
+
+
+// ._bg-default
+@mixin _bg-default {
+  @include _bg(pos center no-repeat cover);
+}
+
+
+
+// . _custom_font
+// * Example:
+//   @ $name: Mont
+//   @ $filePath: '../fonts/Mont/MontRegular'
+//   @ $weight: normal
+//   @ $style: normal
+//   . _custom_font($name, $file_path, $weight, $style)
+//   - return {
+//     - @font-face {
+//       - font-family: Mont;
+//       - font-display: falback;
+//       - src: url(../fonts/Mont/MontRegular.eot);
+//       - src: url(../fonts/Mont/MontRegular.eot) format("embedded-opentype"), url(../fonts/Mont/MontRegular.woff) format("woff"), url(../fonts/Mont/MontRegular.ttf) format("truetype"), url(../fonts/Mont/MontRegular.svg#MontRegular) format("svg");
+//     - }
+//   - }
+
+@mixin _custom_font ($name, $path, $weight: null, $style: null) {
+  @at-root {
+    @font-face {
+      color: red;
+      font-family: $name;
+      font-display: fallback;
+  
+      src: url($path + '.eot');
+      src: url($path + '.eot?#iefix') format('embedded-opentype'),
+        url($path + '.woff') format('woff'),
+        url($path + '.ttf') format('truetype'),
+        url($path + '.svg#' + $name) format('svg');
+  
+      @if ($weight != null) {
+        font-weight: $weight;
+      }
+      @if ($style != null) {
+        font-style: $style;
+      }
+    }
+  }
+}
+
+
+
+// . _scrollbar
+
+@mixin _scrollbar ($size: 10px, $track_bg: #fff, $thumb_bg: #dedede) {
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+    background-color: $track_bg;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb_bg;
+  }
+}
+
+
+
+// . _vhide
+// - visually hidden
+
+@mixin _vhide {
+  position: absolute;
+  appearance: none;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+  outline: none;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+
+// . _decor
+
+@mixin _decor {
+  outline: none;
+  cursor: default;
+  user-select: none;
+  text-decoration: none;
+  @content;
+}

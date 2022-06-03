@@ -1,0 +1,1095 @@
+// _ list functions
+  // . _list_flat
+  // * Example:
+  //   @ $list: (one two) three four (five six (seven 10))
+  //   @ $separator: space;
+  //   . _list_flat($list, $obj);
+  //   - return $list: one two three four five six seven 10;
+
+  @function _list_flat ($list: null, $separator: list-separator($list)) {
+    $new-list: ();
+
+    @if (type-of($list) == list) {
+      @each $value in $list {
+        @if (type-of($value) == list) {
+          $new-list: join($new-list, _list_flat($value, $separator), $separator);
+        } @else {
+          $new-list: join($new-list, $value, $separator);
+        }
+      }
+    }
+
+    @return $new-list;
+  }
+
+
+
+  // . _list_get_random
+  // * Example:
+  //   @ $list: one two three four five
+  //   @ $obj: four two;
+  //   . _list_get_random($list, $obj);
+  //   - return $list: one three five;
+
+  @function _list_separator ($list: (), $separator: null) {
+    @if ($separator == null) {
+      @return list-separator($list);
+    } @else if (unquote($separator) == comma or unquote($separator) == space) {
+      @return join($list, (), $separator);
+    } @else {
+      @warn '#{$__warnPrefix__}Not a valid separator: #{$separator}';
+    }
+  }
+
+
+
+  // . _list_get_random
+  // * Example:
+  //   @ $list: one two three four five
+  //   @ $obj: four two;
+  //   . _list_get_random($list, $obj);
+  //   - return $list: one three five;
+
+  @function _list_get_random ($list: (), $returnCountValues: 1) {
+    $max: length($list);
+    $counter: 1;
+    $result: ();
+    $skip: false;
+
+    @if ($returnCountValues < 1) {
+      $returnCountValues: 1;
+    }
+
+    @each $value in $list {
+      @if ($skip == false) {
+        $result: join($result, random(length($list)));
+  
+        @if ($counter == $returnCountValues) {
+          $skip: true;
+        }
+
+        $counter: $counter + 1;
+      }
+    }
+
+    @return nth($list, random(length($list)));
+  }
+
+
+
+  // . _list_remove_nth
+  // * Example:
+  //   @ $list: one two three four five
+  //   @ $obj: four two;
+  //   . _list_remove_nth($list, $obj);
+  //   - return $list: one three five;
+
+  @function _list_remove_nth ($list, $search, $direction: ltr, $separator: space) {
+    $length:        length($list);
+    $start:         1;
+    $end:           $length;
+    $new-list: ();
+    @if ($direction == rtl) {
+      $start: $length;
+      $end:   1;
+    }
+    @if (type-of($search) == list and $length > 1) {
+      $new-list: $list;
+      @each $search-item in $search {
+        $new-list: _list_remove_nth($new-list, $search-item, $direction, $separator);
+      }
+    }
+      @else {
+        @if ($length == 1) {
+          $new-list: $list;
+        }
+          @else {
+            @for $i from $start through $end {
+              $list-value: nth($list, $i);
+              @if ($list-value != $search) {
+                $new-list: append($new-list, $list-value, $separator);
+              }
+            }
+          }
+      }
+    @return $new-list;
+  }
+
+
+
+  // . _list_unique
+  // * Example:
+  //   @ $list: one two three four five five two four six;
+  //   . _list_unique($list);
+  //   - return list: one two three four five six;
+
+  @function _list_unique ($list: null, $recursive: false) {
+    @if ($list != null) {
+      $result: ();
+
+      @each $item in $list {
+        @if not index($result, $item) {
+          @if length($item) > 1 and $recursive {
+            $result: append($result, _list_unique($item, $recursive));
+          } @else {
+              $result: append($result, $item);
+            }
+        }
+      }
+
+      @return $result;
+    } @else {
+      @warn '#{$__warnPrefix__}_list_unique => $list: is null!';
+      @return null;
+    }
+  }
+
+
+
+  // . _list_append
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $items: 1 2 3 4 5;
+  //   @ $position: 2;
+  //   . _list_append($list, $items, $position);
+  //   - return list: one 1 2 3 4 5 two three four five;
+
+  @function _list_append ($list: null, $items: null, $position: last, $separator: space) {
+    @if ($list != null and $items != null) {
+      $new-list: ();
+      $list-length: length($list);
+      @if ($position == first) {
+        $position: 1;
+      }
+
+      @if (type-of($position) == number) {
+        @each $value in $list {
+          @if (index($list, $value) == $position) {
+            $new-list: _list_append_items($new-list, $items);
+          }
+          $new-list: append($new-list, $value, $separator);
+        }
+      } @else {
+        $new-list: _list_append_items($list, $items);
+      }
+
+      @return $new-list;
+    } @else {
+      @if ($list == null) { @warn '#{$__warnPrefix__}_list_append => $list: #{$list}; - is null!'; }
+      @if ($items == null) { @warn '#{$__warnPrefix__}_list_append => $items: #{$items}; - is null!'; }
+
+      @return null;
+    }
+  }
+
+
+
+  // . _list_prepend
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $items: 1 2 3 4 5;
+  //   . _list_prepend($list, $items, $position);
+  //   - return list: 1 2 3 4 5 one two three four five;
+
+  @function _list_prepend($list, $items) {
+    @return join($items, $list);
+  }
+
+
+
+  // . _list_concat
+  // * Example:
+  //   @ $lists: (one two three four five) (1 2 3 4 5 6) (null false true) (Example list);
+  //   @ $new-list: () or (10 11);
+  //   . _list_concat($list, $new-list);
+  //   - return list: 10 11 one two three four five 1 2 3 4 5 6 null false true Example list;
+
+  @function _list_concat ($lists: null, $new-list: (), $separator: space) {
+    @if ($lists != null) {
+      @each $value in $lists {
+        @if (type-of($value) == list) {
+          $new-list: _list_concat($value, $new-list, $separator);
+        } @else {
+            $new-list: append($new-list, $value, $separator);
+          }
+      }
+
+      @return $new-list;
+    } @else {
+      @warn '#{$__warnPrefix__}_list_concat => $lists: is null!';
+
+      @return null;
+    }
+  }
+
+
+
+  // . _list_replace_item
+  // * Example:
+  //   @ $list: one two three four five 1 2 3 4 5;
+  //   @ $find: one 1;
+  //   @ $replace: false;
+  //   . _list_replace_item($list, $find, $replace);
+  //   - return list: false two three four five false 2 3 4 5;
+
+  @function _list_replace_item ($list: null, $find: null, $replace: null, $recursive: false, $separator: list-separator($list)) {
+    @if ($list != null) {
+      $new-list: ();
+
+      @each $list-value in $list {
+        @if (type-of($list-value) == list and $recursive == true) {
+          $new-list: _list_replace_item($list-value, $find, $replace, $recursive, $separator);
+        } @else {
+            @each $find-value in $find {
+              @if ($find-value == $list-value) {
+                $list-value: $replace;
+              }
+            }
+            $new-list: append($new-list, $list-value, $separator);
+          }
+      }
+
+      @return $new-list;
+    } @else {
+      @warn '#{$__warnPrefix__}$list: is null!';
+
+      @return null;
+    }
+  }
+
+
+
+  // . _list_append_items
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $items: four two;
+  //   . _list_append_items($list, $items);
+  //   - return list: one two three four five four two;
+
+  @function _list_append_items ($list, $items, $concat: false) {
+    @if ($concat) {
+      @return _list_concat($items, $list);
+    } @else {
+      @each $item in $items {
+        $list: append($list, $item, list-separator($list));
+      }
+
+      @return $list;
+    }
+  }
+
+
+
+  // . _list_nth_get
+  //   * Example:
+  //     @ $list: one two three four five;
+  //     @ $item: three;
+  //     @ $param: next;
+  //     . _list_nth_get($item, $list, $param);
+  //     - return value: four || null;
+
+  @function _list_nth_get ($list, $item, $param: null) {
+    @if (type-of($item) == number or $param != null) {
+      $index: null;
+      $length: length($list);
+
+      @if (type-of($item) == number and $param == null) {
+        @if ($item <= 0 and $item > $length) {
+          @warn '#{$__warnPrefix__}_list_nth_get => index-nth($item, $list, $param) => $item[number] = #{$item}';
+
+          @return null;
+        } @else {
+          @return nth($list, $item);
+        }
+      } @else {
+        $index: index($list, $item);
+
+        @if ($index == null) {
+          @return $index;
+        } @else if ($param == next) {
+          @if ($index + 1 > $length) {
+            @return null;
+          }
+
+          @return nth($list, $index + 1);
+        } @else if ($param == prev) {
+          @if ($index - 1 <= 0) {
+            @return null;
+          }
+
+          @return nth($list, $index - 1);
+        } @else {
+          @return null;
+        }
+      }
+    } @else if ($item == first) {
+      @return nth($list, 1);
+    }
+    @else if ($item == last) {
+      @return nth($list, length($list));
+    } @else {
+      @warn '#{$__warnPrefix__}_list_nth_get => index-nth($item, $list, $param) => $param is null!';
+
+      @return null;
+    }
+  }
+
+
+
+  // . _list_nth_next
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $item: three;
+  //   . _list_nth_next($item, $list);
+  //   - return value: four || null;
+
+  @function _list_nth_next ($list, $item) {
+    @return _list_nth_get($item, $list, next);
+  }
+
+
+
+  // . _list_nth_prev
+  // * Example:
+  // @ $list: one two three four five;
+  //   @ $item: three;
+  //   . _list_nth_prev($item, $list);
+  //   - return value: two || null;
+
+  @function _list_nth_prev ($list, $item) {
+    @return _list_nth_get($item, $list, prev);
+  }
+
+
+
+    // . _list_nth_check
+    // * Example:
+    //   @ $list: one two three four five;
+    //   @ $item: three;
+    //   . _list_nth_check($item, $list);
+    //   - return value: true || false;
+
+  @function _list_nth_check ($list: null, $item: null) {
+    @if ($item != null and $list != null) {
+      @return if(type-of(index($list, $item)) == number, true, false);
+    }
+
+    @return false;
+  }
+
+
+
+  // . _list_last_index
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $value: one
+  //   . _list_last_index($list, $value);
+  //   - return value: 5;
+
+  @function _list_last_index ($list, $value) {
+    $index: null;
+    @for $i from length($list) * -1 through -1 {
+      @if nth($list, $i) == $value {
+        $index: abs($i);
+      }
+    }
+
+    @return $index;
+  }
+
+
+
+  // . _list_replace
+  // * Example:
+  //   @ $list: one two three four one five;
+  //   @ $find-value: one
+  //   @ $new-value: wow
+  //   @ $recursive: true
+  //   . _list_replace($list, $find-value, $new-value, $recursive);
+  //   - return value: wow two three four wow five;
+
+  @function _list_replace($list, $find-value, $new-value, $recursive: false) {
+    $result: ();
+  
+    @for $i from 1 through length($list) {
+      @if type-of(nth($list, $i)) == list and $recursive {
+        $result: append(
+          $result,
+          _list_replace(nth($list, $i), $find-value, $new-value, $recursive)
+        );
+      } @else {
+        @if nth($list, $i) == $find-value {
+          $result: append($result, $new-value);
+        } @else {
+          $result: append($result, nth($list, $i));
+        }
+      }
+    }
+  
+    @return $result;
+  }
+
+
+
+  // . _list_replace_nth
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $index: 3
+  //   @ $new-value: wow
+  //   . _list_replace_nth($list, $index, $new-value);
+  //   - return value: one two wow four five;
+
+  @function _list_replace_nth ($list: (), $index: null, $new-value: null) {
+    $result: null;
+    $length: length($list);
+    $indexType: type-of($index);
+    $counter: 1;
+    
+    @each $value in $list {
+      @if (
+        ($indexType == number and $index == $counter)
+        or ($index == $value)
+      ) {
+        $result: append($result, $new-value);
+      } @else {
+        $result: append($result, $value);
+      }
+
+      $counter: $counter + 1;
+    }
+
+    @return (type-of($result) == list, $result, $list);
+  }
+
+
+
+  // . _list_slice
+  // * Example:
+  //   @ $list: one two three four five;
+  //   @ $start: 1
+  //   @ $end: 3
+  //   . _list_slice($list, $start, $end);
+  //   - return value: one two three;
+
+  @function _list_slice ($list, $start: 1, $end: length($list)) {
+    $result: null;
+
+    @if ($start < 0) {
+      $start: length($list) + 1 + $start;
+    }
+    @if ($end < 0) {
+      $end: length($list) + $end;
+    }
+
+    @if type-of($start) != number or type-of($end) != number {
+      @warn "#{$__warnPrefix__}Either $start or $end are not a number for `slice`.";
+    } @else if $start > $end {
+      @warn "#{$__warnPrefix__}The start index has to be lesser than or equals to the end index for `slice`.";
+    } @else if $start < 1 or $end < 1 {
+      @warn "#{$__warnPrefix__}List indexes must be non-zero integers for `slice`.";
+    } @else if $start > length($list) {
+      @warn "#{$__warnPrefix__}List index is #{$start} but list is only #{length($list)} item long for `slice`.";
+    } @else if $end > length($list) {
+      @warn "#{$__warnPrefix__}List index is #{$end} but list is only #{length($list)} item long for `slice`.";
+    } @else {
+      $result: ();
+      @for $i from $start through $end {
+        $result: append($result, nth($list, $i));
+      }
+    }
+
+    @return $result;
+  }
+
+
+
+
+
+// _ map
+  // . _map_get_key
+  // * Example:
+  //   @ $map: (
+  //   @  test: (
+  //   @      one: (
+  //   @          two: Hello world!
+  //   @      )
+  //   @      two: test
+  //   @  )
+  //   @ );
+  //   . _map_get_key($map, test one two);
+  //   - return Hello world!
+
+  @function _map_get_key ($map, $key, $fallback: null) {
+    @if (length($key) > 1) {
+      @if type-of($map) == map and map-has-key($map, nth($key, 1)) {
+        $map: map-get($map, nth($key, 1));
+        $key: _list_remove_nth($key, nth($key, 1), ltr, space);
+        @return _map_get_key($map, $key, $fallback);
+      }
+      @return $fallback;
+    }
+      @else {
+        @if type-of($key) == list { $key: nth($key, 1); }
+        @if type-of($map) == map and map-has-key($map, $key) {
+          @return map-get($map, $key);
+        }
+        @return $fallback;
+      }
+  }
+
+
+
+  // . _map_check_key
+  // * Example:
+  //   @ $map: (
+  //   @     test: (
+  //   @         one: (
+  //   @             two: Hello world!
+  //   @         )
+  //   @         two: test
+  //   @     )
+  //   @ );
+  //   . _map_check_key($map, test one two);
+  //   - return true
+
+  @function _map_check_key ($map, $list-keys: ()) {
+    @each $i-key in map-keys($map) {
+      @each $j-key in $list-keys {
+        @if ($i-key == $j-key) {
+          @return true;
+        }
+      }
+    }
+    @return false;
+  }
+
+
+
+  // . _map_get_keys
+  // * Example:
+  //   @ $map: (
+  //   @     test: (
+  //   @         one: (
+  //   @             two: Hello world!
+  //   @         )
+  //   @         three: test
+  //   @     )
+  //   @ );
+  //   @ $depth: 100;
+  //   . _map_get_keys($map, $depth);
+  //   - return (two three)!
+  //   . _map_get_keys($map, 100, true);
+  //   - return ( (test one two) (test three) );
+
+  @function _map_get_keys ($map: null, $depth: 1000000, $skip-keys: (), $save-keys: x, $depth-value: 0) {
+    $separator: space;
+    $keys: ();
+
+    @if (type-of($map) == map) {
+      @if ($depth == 0) {
+        @each $key in map-keys($map) {
+          @if (not _list_nth_check($key, $skip-keys)) {
+            $keys: append($keys, $key, $separator);
+          }
+        }
+      }
+        @else {
+          @each $key in map-keys($map) {
+            @if (not _list_nth_check($key, $skip-keys)) {
+              $key-value: map-get($map, $key);
+
+              @if ( type-of($key-value) == map ) {
+
+                @if ($save-keys != x) {
+                  $full-key: $key;
+                  @if ($depth-value > 0) { $full-key: append($save-keys, $key); }
+                  $keys: _list_append(_map_get_keys($key-value, $depth, $full-key, $skip-keys, $depth-value + 1), $keys, $separator);
+                }
+                  @else {
+                    $keys: _list_concat(_map_get_keys($key-value, $depth, $save-keys, $skip-keys, $depth-value + 1), $keys, $separator);
+                  }
+
+              }
+                @else if ($save-keys != x and $depth-value > 0) {
+                  $keys: append($keys, _list_concat($key, $save-keys));
+                }
+                  @else {
+                    $keys: append($keys, $key, $separator);
+                  }
+            }
+          }
+        }
+
+      @return $keys;
+    }
+      @else {
+        @warn '#{$__warnPrefix__}_map_get_keys => $map must be a map!';
+      }
+  }
+
+
+
+  // . _map_get_next
+  // * Example:
+  //   @ $map: (
+  //   @     one: start,
+  //   @     two: end
+  //   @ );
+  //   . _map_get_next($map, start);
+  //   - return end!
+
+  @function _map_get_next ($map, $key, $fallback: false) {
+    // Check if map is valid
+    @if (type_of($map) == map) {
+      // Check if key exists in map
+      @if (map_has_key($map, $key)) {
+        // Init index counter variable
+        $i: 0;
+        // Init key index
+        $key-index: false;
+        // Traverse map for key
+        @each $map-key, $map-value in $map {
+          // Update index
+          $i: $i + 1;
+          // If map key found, set key index
+          @if ($map-key == $key) {
+            $key-index: $i;
+          }
+          // If next index return next value
+          @if ($i == $key-index + 1) {
+            @return $map-value;
+          }
+          // If last entry return false
+          @if $i == length($map) {
+            @return $fallback;
+          }
+        }
+        @warn '#{$__warnPrefix__}No next map item for key #{$key}';
+        @return $fallback;
+      }
+      @warn '#{$__warnPrefix__}No valid key #{$key} in map';
+      @return $fallback;
+    }
+    @warn '#{$__warnPrefix__}No valid map';
+    @return $fallback;
+  }
+
+
+
+  // . _map_set
+  // * Example:
+  //   @ $map: (
+  //   @     one: 1,
+  //   @     two: 2
+  //   @ );
+  //   @ $key: two;
+  //   @ $value: 12;
+  //   . _map_set($map, $key, $value);
+  //   - return $map: (
+  //   -     one: 1,
+  //   -     two: 12
+  //   - );
+
+  @function _map_set ($map, $key, $value) {
+    $new: ($key: $value);
+    @return map-merge($map, $new);
+  }
+
+
+
+  // . _map_extend
+  // * Example:
+  //   @ $map1: (
+  //   @     test: (
+  //   @         one: (
+  //   @             two: Hello world!
+  //   @         ),
+  //   @         three: test
+  //   @     )
+  //   @ );
+  //   @ $map2: (
+  //   @     test: (
+  //   @         one: (
+  //   @             two: Wrold hello!
+  //   @         ),
+  //   @         two: (
+  //   @             two: Hello friend!
+  //   @         ),
+  //   @         three: test2,
+  //   @         four: test3
+  //   @     )
+  //   @ );
+  //   . _map_extend($map1, $map2);
+  //   - return $map1: (
+  //   -     test: (
+  //   -         one: (
+  //   -             two: Hello world!
+  //   -         ),
+  //   -         two: (
+  //   -             two: Hello friend!
+  //   -         ),
+  //   -         three: test2,
+  //   -         four: test3
+  //   -     )
+  //   - );
+
+  @function _map_extend ($map-old, $map-new, $deep: true){
+    @each $key, $new-value in $map-new {
+      @if (map-has-key($map-old, $key)) {
+        $old-value: map-get($map-old, $key);
+        @if (type-of($new-value) == map and type-of($old-value) == map) {
+          $merged-value: _map_extend($old-value, $new-value);
+          $map-old: _map_set($map-old, $key, $merged-value);
+        }
+          @else if ($deep) {
+            $map-old: _map_set($map-old, $key, $new-value);
+          }
+      }
+        @else{
+          // There is no existing key so add
+          $map-old: _map_set($map-old, $key, $new-value);
+        }
+    }
+    @return $map-old;
+  }
+
+
+
+
+
+// _ string functions
+  // . _str_last_index
+  // * Example:
+  //   . _str_last_index('div article div div', 'div');
+  //   - return 17;
+  //   . _str_last_index('article article div div', 'article');
+  //   - return 9;
+
+  @function _str_last_index ($string, $search) {
+    $index: null;
+    $length: str-length($string);
+
+    @for $n from $length through 1 {
+      $index: str-index(str-slice($string, $n, $length), $search);
+      @if $index { @return $index + $n - 1; }
+    }
+
+    @return $index;
+  }
+
+
+
+  // . _str_replace_once
+  // * Example:
+  //   . _str_replace_once('div div div', 'div', '');
+  //   - return 'div div';
+  //   . _str_replace_once('div div div', 'div', 'article');
+  //   - return 'article div div';
+
+  @function _str_replace_once ($string, $search, $replace: '', $use-last-index: false) {
+    @if ($use-last-index) {
+      $index: _str_last_index($string, $search);
+    } @else {
+      $index: str-index($string, $search);
+    }
+
+    @if ($index) {
+      @return str-slice($string, 1, $index - 1) + $replace + str-slice($string, $index + str-length($search));
+    }
+  }
+
+
+
+  // . _str_replace_once
+  // * Example:
+  //   . _str_replace_once_last('div div div', 'div', '');
+  //   - return 'div div';
+  //   . _str_replace_once_last('div div div', 'div', 'article');
+  //   - return 'article div div';
+
+  @function _str_replace_once_last ($string, $search, $replace: '') {
+    @return _str_replace_once($string, $search, $reaplace, true);
+  }
+
+
+
+  // . replace string value
+  // * Example:
+  //   . str-one-replace('div article div div', 'div', '');
+  //   - return 'article';
+  //   . str-one-replace('div article div div', 'div', 'article');
+  //   - return 'article article article article';
+
+  @function _str_replace ($string, $search, $replace: '') {
+    $index: str-index($string, $search);
+
+    @if ($index) {
+      @return str-slice($string, 1, $index - 1) + $replace + _str_replace(str-slice($string, $index + str-length($search)), $search, $replace);
+    }
+
+    @return $string;
+  }
+
+
+
+
+
+// _ number
+  // . strip-unit
+  // * Example:
+  //   @ $value: 100px;
+  //   . strip-unit($value);
+  //   - return 100 // type-of => 'number'
+
+  @function strip-unit ($value) {
+    @if type-of($value) == 'number' and not unitless($value) {
+      @return $value / ($value * 0 + 1);
+    }
+    @return $value;
+  }
+
+
+
+  // . _num_unit
+  // * Example:
+  //   @ $value: 100px;
+  //   @ $newUnit: null;
+  //   . _num_unit($value, $newUnit);
+  //   - return px // without quotes
+
+  // * Example:
+  //   @ $value: 100px;
+  //   @ $newUnit: rem;
+  //   . _num_unit($value, $newUnit);
+  //   - return 100rem
+
+  @function _num_unit ($value: null, $newUnit: null) {
+    @if ($value == null) {
+      @return $value;
+    }
+
+    @if ($newUnit) {
+      @return _num_after($value, $newUnit);
+    } @else {
+      @return unquote(str-slice($value * 0 + "", 2, -1));
+    }
+  }
+
+
+
+  // . _num_random
+  //   @ $min: 10
+  //   @ $max: 20
+  //   . _num_random($min, $max)
+  //   - return 15
+
+  @function _num_random ($min: null, $max: null) {
+    $value: null;
+
+    @if ($min == null and $max == null) {
+      @return random(0, 1000);
+    } @else if ($min and $max == null) {
+      @return random($min);
+    } @else if ($min and $max) {
+      $value: $min + floor(random() * (($max - $min) + 1));
+    }
+  
+    @return $value;
+  }
+
+
+
+
+
+  // _ convert units
+    // . _num_after
+    // * Example:
+    //   @ $value: 100
+    //   @ $after: 'px'
+    //   . _num_percent($value)
+    //   - return 100px
+
+    @function _num_after ($value: null, $after: '') {
+      @if ($value != null) {
+        @return #{strip-unit($value) + $after};
+      }
+
+      @return $value;
+    }
+
+
+
+    // . _num_percent
+    // * Example:
+    //   @ $value: 100
+    //   . _num_percent($value)
+    //   - return 100%
+
+    @function _num_percent ($value: null) {
+      @return _num_after($value, '%');
+    }
+
+
+
+    // . _num_px
+    // * Example:
+    //   @ $value: 100rem
+    //   . _num_px($value);
+    //   - return 100px
+
+    @function _num_px ($value) {
+      @return _num_after($value, 'px');
+    }
+
+
+
+    // . _num_rem
+    // * Example:
+    //   @ $value: 32px
+    //   @ $returnNumber: false
+    //   . _num_rem($value, $returnNumber);
+    //   - return 2
+
+    @function _num_rem ($value: null, $returnNumber: false) {
+      @if ($returnNumber) {
+        @return $value / 16px;
+      } @else {
+        @return _num_after(($value / 16px), 'rem');
+      }
+    }
+
+
+
+
+
+// _ color's
+  // . _clr
+  //   * Example:
+  //     @ $color: #ff0
+  //     @ $modificator: -10% // if $modificator < 0 => darken($color)
+  //     . _clr($color, $modificatior)
+  //     - return #cccc00
+
+  //   * Example:
+  //     @ $color: #ff0
+  //     @ $modificator: 10% // if $modificator > 0 => lighten($color)
+  //     . _clr($color, $modificatior)
+  //     - return #ffff33
+
+  //   * Example:
+  //     @ $color: #ff0
+  //     @ $modificator: 0.5 // if $modificator >= 0 and $modificator <= 1 => rgba($color, $modificator)
+  //     . _clr($color, $modificatior)
+  //     - return rgba(255, 255, 0, 0.5)
+
+  @function _clr ($color: null, $modificator: null, $value: null) {
+    @if ($color == random) {
+      @if (type-of($modificator) == null) {
+        $modificator: 255;
+      } @else if (type-of($modificator) == list) {
+        $modificator: join((), $modificator, comma);
+      }
+
+      @return rgb(_num_random($modificator...), _num_random($modificator...), _num_random($modificator...));
+
+    } @else if ($color and not $modificator) {
+
+      @return $color;
+
+    } @else if ($color and $modificator) {
+
+      @if (_num_unit($modificator) == '%') {
+        @if ($modificator < 0) {
+          @if ($modificator < -100) {
+            $modificator: -100;
+          }
+
+          @return darken($color, $modificator * -1);
+        } @else {
+          @if ($modificator > 100) {
+            $modificator: 100;
+          }
+
+          @return lighten($color, $modificator);
+        }
+      } @else if ($modificator >= 0 and $modificator <= 1) {
+        @return rgba($color, $modificator);
+      } @else {
+        @return $color;
+      }
+    }
+
+    @return $color;
+  }
+
+
+  @function _hexToRGB ($hex) {
+    @if (type-of($hex) == color) {
+      @return red($hex), green($hex), blue($hex);
+    } @else {
+      @error $hex;
+    }
+  }
+
+
+
+
+
+// _ other's
+  @function checkPosition ($val: null) {
+    @if (($val == relative) or ($val == absolute) or ($val == fixed) or ($val == static) or ($val == sticky) or ($val == unset)) {
+      @return true;
+    }
+    @return false;
+  }
+
+
+
+  @function checkPositionProp ($val: null) {
+    @if (($val == top) or ($val == right) or ($val == bottom) or ($val == left)) {
+      @return true;
+    }
+    @return false;
+  }
+
+
+
+  @function checkPositionPropMargin ($val: null) {
+    @if (($val == mtop) or ($val == mright) or ($val == mbottom) or ($val == mleft)) {
+      @return true;
+    }
+    @return false;
+  }
+
+
+
+  @function checkPositionPropCentered ($val: null) {
+    @if (($val == middle) or ($val == center)) {
+      @return true;
+    }
+    @return false;
+  }
+
+
+
+  @function checkBackgroundPosition ($value: null) {
+    @if ($value != null) {
+      @if (type-of($value) == number or $value == top or $value == right or $value == bottom or $value == left or $value == center) {
+        @return true;
+      }
+    }
+  
+    @return false;
+  }
+
+
+
+  @function checkBackgroundSize ($value: null) {
+    @if ($value != null) {
+      @if (type-of($value) == number or $value == auto or $value == cover or $value == contain) {
+        @return true;
+      }
+    }
+  
+    @return false;
+  }

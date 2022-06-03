@@ -1,0 +1,296 @@
+@import 'functions';
+@import 'mixins';
+
+
+$class-show:                     '.--show';
+$class-open:                     '.--open';
+$class-loading:                  '.--loading';
+$class-active:                   '.--active';
+$class-success:                  '.--success';
+$class-error:                    '.--error';
+$class-focused:                  '.--focused';
+$class-disabled:                 '.--disabled';
+$class-sticky:                   '.--sticky';
+$class-collapse:                 '.--collapse';
+$class-not-scroll:               '.--not-scroll';
+
+// project units
+$sl_project-units: rem !default;
+@function projectUnit ($value, $units: $sl_project-units) {
+  @if ($units == px) { @return _num_px($value); }
+  @else if ($units == rem) { @return _num_rem($value); }
+}
+
+@mixin _font-size ($value: null) {
+  @if ($value != null) {
+    font-size: projectUnit($value);
+  }
+}
+
+
+// border-radius on/off
+$sl_border-radius-enabled: true !default;
+@function border-radius ($value, $force-enabled: false) {
+  @if ($sl_border-radius-enabled and not $force-enabled) { @return $value; }
+  @else { @return 0; }
+}
+
+
+// z-index function
+$sl_zindex: (
+  iten:   10,
+  isem:   20,
+  imid:   30,
+  imax:   50,
+  notify: 100,
+  nav:    150,
+  fixed:  200,
+  modal:  300,
+  alert:  400
+);
+
+@function _zindex ($key: null) {
+  @return _map_get_key($sl_zindex, $key);
+}
+
+
+// project path to folders
+$sl_theme-name: 'your_theme_name' !default;
+$sl_project-path: (
+  media:  '../../../../storage/app/media/',
+  fonts:  '../fonts/',
+  img:    '../img/',
+  absolute: (
+    assets: #{'/themes/#{$sl_theme-name}/assets/'},
+    fonts: #{'/themes/#{$sl_theme-name}/assets/fonts/'},
+    img: #{'/themes/#{$sl_theme-name}/assets/img/'},
+    css: #{'/themes/#{$sl_theme-name}/assets/css/'},
+    media: #{'/storage/app/media/'},
+  )
+) !default;
+
+@function _path($key: null, $suffix: '', $customPathsMap: $sl_project-path) {
+  @if ($key != null) {
+    @return _map_get_key($customPathsMap, $key) + $suffix;
+  } @else {
+    @warn '_path: $key is null!';
+  }
+}
+
+
+$themes: (
+  dark: 'dark',
+  light: 'light',
+  auto: 'auto'
+) !default;
+
+@function themeAttr($key: null) {
+  @return if($key == null, '', #{'[data-theme="' + map-get($themes, $key) + '"]'})
+}
+
+@function themeClass($key: null) {
+  @return if($key == null, '', #{'theme--' + map-get($themes, $key)})
+}
+
+// spacers
+$sl_gaps: (
+  3xs:      2px,
+  2xs:      4px,
+  xs:       8px,
+  sm:       12px,
+  md:       16px,
+  lg:       20px,
+  xl:       24px,
+  2xl:      32px,
+  3xl:      40px,
+  4xl:      48px,
+  5xl:      60px,
+  6xl:      72px,
+  7xl:      84px,
+  8xl:      96px,
+  9xl:      120px,
+  10xl:     140px,
+  11xl:     160px,
+  12xl:     180px,
+  13xl:     200px,
+  14xl:     240px,
+);
+
+@function space($key: null) {
+  @if ($key != null) {
+    $gap: _map_get_key($sl_gaps, $key);
+
+    @if (type-of($gap) == number) {
+      @return projectUnit($gap);
+    }
+
+    @return $gap;
+  }
+}
+
+@mixin space-y($key: null, $prop: margin, $suffix: top bottom) {
+  @if ($key != null) {
+    @include severalBySuffix($prop, $suffix, space($key));
+    @content;
+  }
+}
+
+@mixin space-x($key: null, $prop: margin, $suffix: right left) {
+  @if ($key != null) {
+    @include severalBySuffix($prop, $suffix, space($key));
+    @content;
+  }
+}
+
+@mixin shadow($z-depth: 1, $strength: 1, $color: #000) {
+  @if $z-depth == 1 {
+    box-shadow: 0 1px 3px rgba($color, $strength * 0.14), 0 1px 2px rgba($color, $strength * 0.24);
+  } @else if $z-depth == 1.5 {
+    box-shadow: 0 2px 4.5px rgba($color, $strength * 0.16), 0 2px 3px rgba($color, $strength * 0.23);
+  } @else if $z-depth == 2 {
+    box-shadow: 0 3px 6px rgba($color, $strength * 0.16), 0 3px 6px rgba($color, $strength * 0.23);
+  } @else if $z-depth == 3 {
+    box-shadow: 0 10px 20px rgba($color, $strength * 0.19), 0 6px 6px rgba($color, $strength * 0.23);
+  } @else if $z-depth == 4 {
+    box-shadow: 0 15px 30px rgba($color, $strength * 0.25), 0 10px 10px rgba($color, $strength * 0.22);
+  } @else if $z-depth == 5{
+    box-shadow: 0 20px 40px rgba($color, $strength * 0.30), 0 15px 12px rgba($color, $strength * 0.22);
+  } @else if $z-depth == 6 {
+    box-shadow: 0 25px 50px rgba($color, $strength * 0.35), 0 15px 12px rgba($color, $strength * 0.22);
+  } @else if $z-depth == 7 {
+    box-shadow: 0 30px 60px rgba($color, $strength * 0.40), 0 15px 12px rgba($color, $strength * 0.23);
+  } @else if ($z-depth < 1) or ($z-depth > 7) {
+    @warn '@mixin shadow: $z-depth must be between 1 and 5';
+  }
+
+  @content
+}
+@mixin shadow-component($component_name: card) {
+  // card's
+    @if ($component_name == card) {
+      @include shadow(2) { @content }
+    }
+
+  // alert's
+    @else if ($component_name == alert) {
+      @include shadow(3, 1.3) { @content }
+    }
+
+  // modal's
+    @else if ($component_name == modal) {
+      @include shadow(4, 3) { @content }
+    }
+
+  // menu's
+    @else if ($component_name == sticky-nav) {
+      @include shadow(3, 0.2) { @content }
+    }
+    @else if ($component_name == dropdown) {
+      @include shadow(2, 0.7) { @content }
+    }
+
+  // button's
+    @else if ($component_name == button) {
+      @include shadow(1.5, 1) { @content }
+    }
+    @else if ($component_name == button-hover) {
+      @include shadow(2, 1.2) { @content }
+    }
+    @else if ($component_name == button-active) {
+      @include shadow(1) { @content }
+    }
+
+  // alert's
+    @else if ($component_name == alert) {
+      @include shadow(2, 1.4) { @content }
+    }
+
+  // show error
+    @else {
+      @error '@mixin shadow-component: component name -> "#{$component_name}", not found!';
+    }
+}
+
+
+// button
+
+@mixin button-hover {
+  &:hover {
+    @include shadow-component(button-hover);
+    transform: translateY(-2px) scale3d(1, 1, 1);
+    @content;
+  }
+}
+@mixin button-active {
+  &:active {
+    @include shadow-component(button-active);
+    transform: translateY(0) scale3d(0.95, 0.9, 1);
+    @content;
+  }
+}
+
+
+// pseudo icon
+@mixin pseudo-icon-remove ($size: 10px, $weight: 1px, $position: middle center, $background-color: #232323) {
+  &:before,
+  &:after {
+    content: '';
+    display: block;
+    transition: 0.2s ease;
+    transform-origin: center;
+    background-color: $background-color;
+    @include _size($size $weight, $position);
+  }
+  &:before {
+    transform: rotate(45deg);
+  }
+  &:after {
+    transform: rotate(-45deg);
+  }
+  &:before,
+  &:after {
+    @content;
+  }
+}
+@mixin pseudo-icon-plus ($size: 10px, $weight: 1px, $position: middle center, $background-color: #232323) {
+  &:before,
+  &:after {
+    content: '';
+    display: block;
+    transition: 0.2s ease;
+    transform-origin: center;
+    background-color: $background-color;
+    @include _size($size $weight, $position);
+  }
+  &:before {
+    transform: rotate(0deg);
+  }
+  &:after {
+    transform: rotate(90deg);
+  }
+  &:before,
+  &:after {
+    @content;
+  }
+}
+@mixin pseudo-icon-minus ($size: 10px, $weight: 1px, $position: middle center, $background-color: #232323) {
+  &:before,
+  &:after {
+    content: '';
+    display: block;
+    transition: 0.2s ease;
+    transform-origin: center;
+    background-color: $background-color;
+    @include _size($size $weight, $position);
+  }
+  &:before {
+    transform: rotate(0deg);
+  }
+  &:after {
+    transform: rotate(90deg);
+  }
+  &:before,
+  &:after {
+    @content;
+  }
+}

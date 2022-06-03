@@ -1,0 +1,132 @@
+@import 'functions';
+@import 'mixins';
+@import 'project';
+
+$grid-columns:          12 !default;
+$grid-gutter-width_:    12px !default;
+$grid-gutter-width:     projectUnit($grid-gutter-width_ * 2) !default;
+$grid-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px
+) !default;
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1320px
+) !default;
+$break_device: _map_get_key($grid-breakpoints, lg) !default;
+$break_device_suffix: break;
+
+@function breakpoint ($key: null) {
+  @if ($key != null) {
+    @return _map_get_key($grid-breakpoints, $key);
+  } @else {
+    @return 0;
+  }
+}
+
+
+@mixin screenMin ($size: null, $prop: width) {
+  @if ($size != null) {
+    $bootstrap-breakpoint: _map_get_key($grid-breakpoints, $size);
+
+    @media only screen and (#{'min-' + $prop}: if($bootstrap-breakpoint != null, $bootstrap-breakpoint, $size)) {
+      @content;
+    }
+  }
+}
+
+@mixin screenMax ($size: null, $prop: width) {
+  @if ($size != null) {
+    $bootstrap-breakpoint: _map_get_key($grid-breakpoints, $size);
+
+    @media only screen and (#{'max-' + $prop}: if($bootstrap-breakpoint != null, $bootstrap-breakpoint, $size)) {
+      @content;
+    }
+  }
+}
+
+@mixin screenBetweenWidth ($width-min: null, $width-max: null) {
+  @if ($width-min != null and $width-max != null) {
+    $bootstrap-breakpoint-min: _map_get_key($grid-breakpoints, $width-min);
+    $bootstrap-breakpoint-max: _map_get_key($grid-breakpoints, $width-max);
+
+    @media only screen and (min-width: if($bootstrap-breakpoint-min != null, $bootstrap-breakpoint-min, $width-min)) and (max-width: if($bootstrap-breakpoint-max != null, $bootstrap-breakpoint-max, $width-max)) {
+      @content;
+    }
+  }
+}
+
+@mixin screenBetweenHeight ($height-min: null, $height-max: null) {
+  @if ($height-min != null and $height-max != null) {
+    $bootstrap-breakpoint-min: _map_get_key($grid-breakpoints, $height-min);
+    $bootstrap-breakpoint-max: _map_get_key($grid-breakpoints, $height-max);
+
+    @media only screen and (min-height: if($bootstrap-breakpoint-min != null, $bootstrap-breakpoint-min, $height-min)) and (max-width: if($bootstrap-breakpoint-max != null, $bootstrap-breakpoint-max, $height-max)) {
+      @content;
+    }
+  }
+}
+
+@mixin screenExact ($widthProp: null null, $heightProp: null null) {
+  @media only screen and (#{nth($widthProp, 1) + '-width'}: nth($widthProp, 2)) and (#{nth($heightProp, 1) + '-height'}: nth($heightProp, 2)) {
+    @content;
+  }
+}
+
+
+@mixin screenMinProp($breakpoint: null, $prop: null, $value: null, $orientation: width) {
+  @if ($breakpoint != null and $prop != null) { @include screenMin($breakpoint, $orientation) { #{$prop}: $value; } }
+}
+@mixin screenMaxProp($breakpoint: null, $prop: null, $value: null, $orientation: width) {
+  @if ($breakpoint != null and $prop != null) { @include screenMax($breakpoint, $orientation) { #{$prop}: $value; } }
+}
+@mixin w_screenMin($breakpoint_width: null, $prop: null, $value: null) {
+  @if ($breakpoint_width != null and $prop != null) { @include screenMin($breakpoint_width) { #{$prop}: $value; } }
+}
+@mixin h_screenMin($breakpoint_height: null, $prop: null, $value: null) {
+  @if ($breakpoint_height != null and $prop != null) { @include screenMin($breakpoint_height, height) { #{$prop}: $value; } }
+}
+@mixin sm_screenMin($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMin(sm) { #{$prop}: $value; } }
+}
+@mixin md_screenMin($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMin(md) { #{$prop}: $value; } }
+}
+@mixin lg_screenMin($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMin(lg) { #{$prop}: $value; } }
+}
+@mixin xl_screenMin($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMin(xl) { #{$prop}: $value; } }
+}
+@mixin xxl_screenMin($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMin(xxl) { #{$prop}: $value; } }
+}
+
+@mixin w_screenMax($breakpoint_width: null, $prop: null, $value: null) {
+  @if ($breakpoint_width != null and $prop != null) { @include screenMax($breakpoint_width) { #{$prop}: $value; } }
+}
+@mixin h_screenMax($breakpoint_height: null, $prop: null, $value: null) {
+  @if ($breakpoint_height != null and $prop != null) { @include screenMax($breakpoint_height, height) { #{$prop}: $value; } }
+}
+@mixin sm_screenMax($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMax(sm) { #{$prop}: $value; } }
+}
+@mixin md_screenMax($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMax(md) { #{$prop}: $value; } }
+}
+@mixin lg_screenMax($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMax(lg) { #{$prop}: $value; } }
+}
+@mixin xl_screenMax($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMax(xl) { #{$prop}: $value; } }
+}
+@mixin xxl_screenMax($prop: null, $value: null) {
+  @if ($prop != null) { @include screenMax(xxl) { #{$prop}: $value; } }
+}
